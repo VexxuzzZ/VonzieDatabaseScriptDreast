@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vonzie Database Login</title>
+  <style>
+    * { box-sizing: border-box; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    body { background-color: #f4f4f4; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-box, .main-box {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    h2 { margin-bottom: 20px; text-align: center; color: #5e17eb; }
+    input[type="password"], input[type="text"] {
+      width: 100%; padding: 12px; margin-bottom: 15px;
+      border: 1px solid #ccc; border-radius: 8px;
+    }
+    button {
+      width: 100%; padding: 12px;
+      background-color: #5e17eb; color: white;
+      border: none; border-radius: 8px;
+      font-weight: bold; cursor: pointer;
+    }
+    button:hover { background-color: #4912c5; }
+    .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .subtitle { text-align: center; margin-bottom: 15px; color: #28a745; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border-bottom: 1px solid #ccc; text-align: left; }
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #888;
+    }
+    footer a { color: #5e17eb; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <!-- Login Panel -->
+  <div class="login-box" id="loginBox">
+    <h2>Login Admin</h2>
+    <input type="password" id="loginPassword" placeholder="Masukkan password...">
+    <button onclick="checkLogin()">Login</button>
+  </div>
+
+  <!-- Halaman Utama -->
+  <div class="main-box" id="mainBox" style="display: none;">
+    <h2>Vonzie Database</h2>
+    <div class="input-group">
+      <input type="text" id="inputNomor" placeholder="Masukkan nomor baru...">
+      <button onclick="tambahNomor()">Tambah Nomor</button>
+    </div>
+    <div class="subtitle">Nomor Tersimpan:</div>
+    <input type="text" id="searchInput" placeholder="Cari nomor..." onkeyup="cariNomor()">
+    <table>
+      <thead>
+        <tr><th>Nomor</th><th>Status</th></tr>
+      </thead>
+      <tbody id="isiTabel"></tbody>
+    </table>
+    <footer>
+      Contact developer: 
+      <a href="https://wa.me/62857734669112" target="_blank">WhatsApp</a> | 
+      <a href="mailto:dev@vonzie.id">Email</a>
+    </footer>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    // Firebase config
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyBgPWqTDnC36NU7d_hdvxu_fn2wKatXCmw",
+  authDomain: "vonzie-database.firebaseapp.com",
+  databaseURL: "https://vonziereal-default-rtdb.firebaseio.com/", // ✅ Ini yang benar
+  projectId: "vonzie-database",
+  storageBucket: "vonzie-database.appspot.com",
+  messagingSenderId: "493170457024",
+  appId: "1:493170457024:web:cf76e27d1d9c3f0f4ef025",
+  measurementId: "G-11SN80QH70"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const nomorRef = ref(db, 'nomor');
+
+    // Tambah Nomor
+    function tambahNomor() {
+      const nomor = document.getElementById('inputNomor').value.trim();
+      if (nomor !== "") {
+        push(nomorRef, {
+          nomor: nomor,
+          status: 'active'
+        });
+        document.getElementById('inputNomor').value = "";
+      }
+    }
+
+    // Tampilkan Data
+    onValue(nomorRef, snapshot => {
+      const data = snapshot.val();
+      const isiTabel = document.getElementById("isiTabel");
+      isiTabel.innerHTML = "";
+      if (data) {
+        Object.values(data).forEach(item => {
+          isiTabel.innerHTML += `
+            <tr>
+              <td>${item.nomor}</td>
+              <td>${item.status}</td>
+            </tr>
+          `;
+        });
+      }
+    });
+
+    // Filter Pencarian
+    window.cariNomor = function() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const rows = document.querySelectorAll("#isiTabel tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(keyword) ? "" : "none";
+      });
+    };
+
+    // Login
+    window.checkLogin = function () {
+      const password = document.getElementById("loginPassword").value;
+      if (password === "vonzie123") {
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("mainBox").style.display = "block";
+      } else {
+        alert("Password salah!");
+      }
+    };
+
+    // Export untuk HTML global
+    window.tambahNomor = tambahNomor;
+  </script>
+</body>
+</html>
